@@ -1,4 +1,5 @@
 window.library = {};
+var library;
 
 (function (library) {
     function echo() {

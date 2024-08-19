@@ -7,7 +7,10 @@ const plus = require('typescript-plus');
 const merge = require('merge2');
 const del = require('del');
 const tsProject = ts.createProject('tsconfig.json', { typescript: plus });
-const lib_name = 'library';
+const outFile = tsProject.config.compilerOptions.outFile;
+const outNames = outFile.split('/');
+const lib_name = outNames[outNames.length - 1].replace('.js', '');
+const module_name = 'library';
 gulp.task('clean', () => {
     return del([
         'bin',
@@ -18,8 +21,9 @@ gulp.task('buildJs', () => {
     return tsProject.src()
         .pipe(tsProject())
         .js
-        .pipe(inject.replace('var ' + lib_name + ';', ''))
-        .pipe(inject.prepend('window.' + lib_name + ' = {};\n'))
+        .pipe(inject.replace('var ' + module_name + ';', ''))
+        .pipe(inject.prepend('var ' + module_name + ';\n'))
+        .pipe(inject.prepend('window.' + module_name + ' = {};\n'))
         .pipe(inject.replace('var __extends =', 'window.__extends ='))
         .pipe(minify({ ext: { min: ".min.js" } }))
         .pipe(gulp.dest('./bin'));
@@ -35,7 +39,7 @@ gulp.task("buildDts", ["buildJs"], () => {
 gulp.task("build", ["buildDts"], () => {
     return merge([
         gulp.src('bin/**/*')
-            .pipe(gulp.dest('./dist/egret.' + lib_name + '/')),
+            .pipe(gulp.dest('./dist/' + lib_name + '/')),
         // gulp.src('bin/*.ts').pipe(),//复制dts到其他依赖项目中
     ]);
 });
